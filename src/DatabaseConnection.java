@@ -3,10 +3,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    // Database configuration constants
-    private static final String URL = "jdbc:mysql://localhost:3306/contact_management?useSSL=false&allowPublicKeyRetrieval=true";
-    private static final String USER = "root";
-    private static final String PASSWORD = ""; // Change this if your MySQL root has a password
+    // Database configuration constants (Supports Cloud Environment Variables with local XAMPP fallback)
+    private static final String DEFAULT_URL = "jdbc:mysql://localhost:3306/contact_management?useSSL=false&allowPublicKeyRetrieval=true";
+    private static final String DEFAULT_USER = "root";
+    private static final String DEFAULT_PASSWORD = "";
 
     // Static block to load MySQL JDBC Driver
     static {
@@ -19,6 +19,24 @@ public class DatabaseConnection {
 
     // Method to obtain database connection
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        String envUrl = System.getenv("DB_URL");
+        if (envUrl == null || envUrl.trim().isEmpty()) {
+            envUrl = System.getenv("MYSQL_URL");
+        }
+        String url = (envUrl != null && !envUrl.trim().isEmpty()) ? envUrl : DEFAULT_URL;
+
+        String envUser = System.getenv("DB_USER");
+        if (envUser == null || envUser.trim().isEmpty()) {
+            envUser = System.getenv("MYSQL_USER");
+        }
+        String user = (envUser != null) ? envUser : DEFAULT_USER;
+
+        String envPass = System.getenv("DB_PASSWORD");
+        if (envPass == null) {
+            envPass = System.getenv("MYSQL_PASSWORD");
+        }
+        String password = (envPass != null) ? envPass : DEFAULT_PASSWORD;
+
+        return DriverManager.getConnection(url, user, password);
     }
 }

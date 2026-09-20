@@ -21,12 +21,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class WebServer {
-    private static final int PORT = 8080;
+    private static final int DEFAULT_PORT = 8080;
     private static final ContactDAO contactDAO = new ContactDAO();
 
     public static void main(String[] args) {
+        int port = DEFAULT_PORT;
+        String envPort = System.getenv("PORT");
+        if (envPort != null && !envPort.trim().isEmpty()) {
+            try {
+                port = Integer.parseInt(envPort.trim());
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid PORT env variable, defaulting to " + DEFAULT_PORT);
+            }
+        }
+
         try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
             server.setExecutor(Executors.newCachedThreadPool());
 
             // API Endpoints
@@ -41,13 +51,13 @@ public class WebServer {
             System.out.println("=========================================================");
             System.out.println("       CONTACTVAULT WEB SERVER IS RUNNING                ");
             System.out.println("=========================================================");
-            System.out.println("  Local URL: http://localhost:" + PORT);
+            System.out.println("  URL      : http://localhost:" + port);
             System.out.println("  Database : MySQL (via ContactDAO)");
             System.out.println("  Press Ctrl+C in this terminal to stop the server.");
             System.out.println("=========================================================");
 
             // Proactively open default browser if supported
-            tryOpenBrowser("http://localhost:" + PORT);
+            tryOpenBrowser("http://localhost:" + port);
 
         } catch (IOException e) {
             System.err.println("Failed to start WebServer: " + e.getMessage());
